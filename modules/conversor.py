@@ -36,7 +36,7 @@ def _api_remove_bg(image_bytes: bytes, out_format: str, width=None, height=None)
 def render():
     st.markdown(f"""
     <div style="display: flex; align-items: center; gap: 18px; margin: 20px 0 30px 0;">
-        <img src="data:image/svg+xml;base64,{ICON_CONVERSOR_B64}" width="250" style="flex-shrink: 0;">
+        <img src="data:image/svg+xml;base64,{ICON_CONVERSOR_B64}" width="150" style="flex-shrink: 0;">
         <span style="font-size: 34px; font-weight: 800; letter-spacing: 0.5px; display: flex; align-items: center;">
             CONVERSOR DE IMAGENS
         </span>
