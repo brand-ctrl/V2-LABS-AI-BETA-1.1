@@ -42,7 +42,7 @@ def render():
     # ---------- CABEÇALHO COM ÍCONE ----------
     st.markdown("""
 <div style="display: flex; align-items: center; gap: 10px; margin: 10px 0 20px 0;">
-    <img src="app/assets/icon_conversor.svg" width="42" style="flex-shrink: 0;">
+    <img src="/assets/icon_conversor.svg" width="42" style="flex-shrink: 0;">
     <span style="font-size: 26px; font-weight: 800; letter-spacing: 0.5px;">
         CONVERSOR DE IMAGENS
     </span>
