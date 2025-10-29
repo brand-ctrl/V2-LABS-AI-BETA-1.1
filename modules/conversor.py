@@ -4,7 +4,7 @@ import io, os, shutil, requests, zipfile
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-API_KEY = "YOUR_API_KEY_HERE"  # <-- COLE SUA CHAVE AQUI
+API_KEY = "288cff6e-acb5-4773-9b67-b6c78f4f5cb0"
 
 def _resize_and_center(img: Image.Image, target_size, bg_color=None):
     w, h = img.size
