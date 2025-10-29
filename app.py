@@ -9,7 +9,7 @@ st.markdown('''
 :root { --grad-start:#15aaff; --grad-end:#007bff; }
 html, body, [class^="css"] { background: #f5f7fb; }
 .header { display:flex; align-items:center; justify-content:center; margin: 22px 0 18px; }
-.header img { height: 188px; }
+.header img { height: 288px; }
 .section-title { font-weight:800; color:#1e2a3a; margin: 8px 0 14px; }
 .card { display:flex; gap:16px; align-items:center; background:#fff; border:1px solid rgba(0,0,0,.06);
          border-radius:16px; padding:16px; box-shadow:0 8px 22px rgba(0,0,0,.06); }
