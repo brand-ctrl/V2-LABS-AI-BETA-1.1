@@ -1,21 +1,22 @@
 import streamlit as st
 from PIL import Image
-import io, os, shutil, requests, zipfile
+import io, os, shutil, requests, zipfile, base64
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 API_KEY = "288cff6e-acb5-4773-9b67-b6c78f4f5cb0"
 
+# converte o SVG para Base64 uma vez
+with open("app/assets/icon_conversor.svg", "rb") as f:
+    ICON_CONVERSOR_B64 = base64.b64encode(f.read()).decode("utf-8")
+
 def _resize_and_center(img: Image.Image, target_size, bg_color=None):
     w, h = img.size
     scale = min(target_size[0]/w, target_size[1]/h)
-    new_w, new_h = max(1,int(w*scale)), max(1,int(h*scale))
-    img = img.resize((new_w,new_h), Image.Resampling.LANCZOS)
-    if bg_color is None:
-        canvas = Image.new("RGBA", target_size, (0,0,0,0))
-    else:
-        canvas = Image.new("RGB", target_size, bg_color)
-    off = ((target_size[0]-new_w)//2, (target_size[1]-new_h)//2)
+    new_w, new_h = max(1, int(w * scale)), max(1, int(h * scale))
+    img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
+    canvas = Image.new("RGBA" if bg_color is None else "RGB", target_size, (0, 0, 0, 0) if bg_color is None else bg_color)
+    off = ((target_size[0] - new_w) // 2, (target_size[1] - new_h) // 2)
     if img.mode != "RGBA":
         img = img.convert("RGBA")
     canvas.paste(img, off, img)
@@ -25,69 +26,68 @@ def _api_remove_bg(image_bytes: bytes, out_format: str, width=None, height=None)
     url = "https://api.rembg.com/rmbg"
     headers = {"x-api-key": API_KEY}
     files = {"image": ("image", image_bytes, "application/octet-stream")}
-    data = {}
+    data = {"exact_resize": "false", "expand": "true"}
     if out_format:
         data["format"] = out_format.lower()
-    if width: data["w"] = str(width)
-    if height: data["h"] = str(height)
-    data["exact_resize"] = "false"
-    data["expand"] = "true"
+    if width:
+        data["w"] = str(width)
+    if height:
+        data["h"] = str(height)
     r = requests.post(url, headers=headers, files=files, data=data, timeout=90)
     if r.status_code == 200:
         return r.content
-    else:
-        raise RuntimeError(f"API error {r.status_code}: {r.text[:200]}")
+    raise RuntimeError(f"API error {r.status_code}: {r.text[:200]}")
 
 def render():
-    # ---------- CABEÇALHO COM ÍCONE ----------
-    st.markdown("""
-<div style="display: flex; align-items: center; gap: 10px; margin: 10px 0 20px 0;">
-    <img src="data:image/svg+xml;base64" width="42" style="flex-shrink: 0;">
-    <span style="font-size: 26px; font-weight: 800; letter-spacing: 0.5px;">
-        CONVERSOR DE IMAGENS
-    </span>
-</div>
-""", unsafe_allow_html=True)
-
-
-
+    # ---------- CABEÇALHO COM ÍCONE EMBUTIDO ----------
+    st.markdown(f"""
+    <div style="display: flex; align-items: center; gap: 18px; margin: 20px 0 30px 0;">
+        <img src="data:image/svg+xml;base64,{ICON_CONVERSOR_B64}" width="250" style="flex-shrink: 0;">
+        <span style="font-size: 34px; font-weight: 800; letter-spacing: 0.5px; display: flex; align-items: center;">
+            CONVERSOR DE IMAGENS
+        </span>
+    </div>
+    """, unsafe_allow_html=True)
 
     # ---------- OPÇÕES PRINCIPAIS ----------
     col1, col2 = st.columns(2)
     with col1:
         target_label = st.radio("Resolução", ("1080x1080", "1080x1920"), horizontal=True)
-        target = (1080,1080) if target_label=="1080x1080" else (1080,1920)
+        target = (1080, 1080) if target_label == "1080x1080" else (1080, 1920)
     with col2:
         mode = st.radio("Modo", ("Preencher com cor", "Remover Fundo (API)"), horizontal=True)
 
     bg_rgb = None
     if mode == "Preencher com cor":
         hexcor = st.color_picker("Cor de fundo", "#f2f2f2")
-        bg_rgb = tuple(int(hexcor.strip("#")[i:i+2],16) for i in (0,2,4))
+        bg_rgb = tuple(int(hexcor.strip("#")[i:i+2], 16) for i in (0, 2, 4))
 
     st.write("---")
     out_format = st.selectbox("Formato de saída", ("png", "jpg", "webp"), index=0)
 
     # ---------- UPLOAD ----------
-    files = st.file_uploader("Envie imagens ou ZIP", type=["jpg","jpeg","png","webp","zip"], accept_multiple_files=True)
+    files = st.file_uploader("Envie imagens ou ZIP", type=["jpg", "jpeg", "png", "webp", "zip"], accept_multiple_files=True)
     if not files:
         st.stop()
 
     INP, OUT = "conv_in", "conv_out"
-    shutil.rmtree(INP, ignore_errors=True); shutil.rmtree(OUT, ignore_errors=True)
-    os.makedirs(INP, exist_ok=True); os.makedirs(OUT, exist_ok=True)
+    shutil.rmtree(INP, ignore_errors=True)
+    shutil.rmtree(OUT, ignore_errors=True)
+    os.makedirs(INP, exist_ok=True)
+    os.makedirs(OUT, exist_ok=True)
 
     from zipfile import ZipFile, BadZipFile
     for f in files:
         if f.name.lower().endswith(".zip"):
             try:
-                with ZipFile(io.BytesIO(f.read())) as z: z.extractall(INP)
+                with ZipFile(io.BytesIO(f.read())) as z:
+                    z.extractall(INP)
             except BadZipFile:
                 st.error(f"Arquivo ZIP inválido: {f.name}")
         else:
             open(os.path.join(INP, f.name), "wb").write(f.read())
 
-    paths = [p for p in Path(INP).rglob("*") if p.suffix.lower() in (".jpg",".jpeg",".png",".webp")]
+    paths = [p for p in Path(INP).rglob("*") if p.suffix.lower() in (".jpg", ".jpeg", ".png", ".webp")]
     if not paths:
         st.warning("Nenhuma imagem encontrada.")
         st.stop()
@@ -99,7 +99,6 @@ def render():
     def worker(p: Path):
         rel = p.relative_to(INP)
         raw = open(p, "rb").read()
-
         if mode == "Remover Fundo (API)":
             api_bytes = _api_remove_bg(raw, out_format="png")
             img = Image.open(io.BytesIO(api_bytes)).convert("RGBA")
@@ -108,7 +107,7 @@ def render():
             img = Image.open(io.BytesIO(raw)).convert("RGBA")
             composed = _resize_and_center(img, target, bg_color=bg_rgb)
 
-        outp = (Path(OUT)/rel).with_suffix("." + out_format.lower())
+        outp = (Path(OUT) / rel).with_suffix("." + out_format.lower())
         os.makedirs(outp.parent, exist_ok=True)
         bio = io.BytesIO()
         if out_format.lower() == "jpg":
@@ -122,13 +121,8 @@ def render():
         prev_io = io.BytesIO()
         pv = composed.copy()
         pv.thumbnail((360, 360))
-        if out_format.lower() == "jpg":
-            pv.convert("RGB").save(prev_io, format="JPEG", quality=85); mime = "image/jpeg"
-        elif out_format.lower() == "png":
-            pv.save(prev_io, format="PNG"); mime = "image/png"
-        else:
-            pv.save(prev_io, format="WEBP", quality=90); mime = "image/webp"
-        return rel.as_posix(), prev_io.getvalue(), mime
+        pv.save(prev_io, format=out_format.upper())
+        return rel.as_posix(), prev_io.getvalue(), f"image/{out_format}"
 
     with ThreadPoolExecutor(max_workers=8) as ex:
         fut = [ex.submit(worker, p) for p in paths]
@@ -138,7 +132,7 @@ def render():
                 results.append(f.result())
             except Exception as e:
                 st.error(f"Erro ao processar: {e}")
-            prog.progress(i/tot)
+            prog.progress(i / tot)
             info.info(f"Processado {i}/{tot}")
 
     st.write("---")
