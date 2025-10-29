@@ -39,13 +39,21 @@ def _api_remove_bg(image_bytes: bytes, out_format: str, width=None, height=None)
         raise RuntimeError(f"API error {r.status_code}: {r.text[:200]}")
 
 def render():
-    st.subheader("🖼️ Conversor de Imagens")
+    # ---------- CABEÇALHO COM ÍCONE ----------
+    st.markdown("""
+    <div style='display: flex; align-items: center; gap: 12px; margin-bottom: 10px;'>
+        <img src='app/assets/icon_conversor.svg' width='42'>
+        <h1 style='margin: 0; font-size: 28px;'>CONVERSOR DE IMAGENS</h1>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # ---------- OPÇÕES PRINCIPAIS ----------
     col1, col2 = st.columns(2)
     with col1:
-        target_label = st.radio("Resolução", ("1080x1080","1080x1920"), horizontal=True)
+        target_label = st.radio("Resolução", ("1080x1080", "1080x1920"), horizontal=True)
         target = (1080,1080) if target_label=="1080x1080" else (1080,1920)
     with col2:
-        mode = st.radio("Modo", ("Preencher com cor","Remover Fundo (API)"), horizontal=True)
+        mode = st.radio("Modo", ("Preencher com cor", "Remover Fundo (API)"), horizontal=True)
 
     bg_rgb = None
     if mode == "Preencher com cor":
@@ -53,8 +61,9 @@ def render():
         bg_rgb = tuple(int(hexcor.strip("#")[i:i+2],16) for i in (0,2,4))
 
     st.write("---")
-    out_format = st.selectbox("Formato de saída", ("png","jpg","webp"), index=0)
+    out_format = st.selectbox("Formato de saída", ("png", "jpg", "webp"), index=0)
 
+    # ---------- UPLOAD ----------
     files = st.file_uploader("Envie imagens ou ZIP", type=["jpg","jpeg","png","webp","zip"], accept_multiple_files=True)
     if not files:
         st.stop()
@@ -68,15 +77,18 @@ def render():
         if f.name.lower().endswith(".zip"):
             try:
                 with ZipFile(io.BytesIO(f.read())) as z: z.extractall(INP)
-            except BadZipFile: st.error(f"ZIP inválido: {f.name}")
+            except BadZipFile:
+                st.error(f"Arquivo ZIP inválido: {f.name}")
         else:
             open(os.path.join(INP, f.name), "wb").write(f.read())
 
     paths = [p for p in Path(INP).rglob("*") if p.suffix.lower() in (".jpg",".jpeg",".png",".webp")]
     if not paths:
-        st.warning("Nenhuma imagem encontrada."); st.stop()
+        st.warning("Nenhuma imagem encontrada.")
+        st.stop()
 
-    prog = st.progress(0.0); info = st.empty()
+    prog = st.progress(0.0)
+    info = st.empty()
     results = []
 
     def worker(p: Path):
@@ -103,7 +115,8 @@ def render():
         open(outp, "wb").write(bio.getvalue())
 
         prev_io = io.BytesIO()
-        pv = composed.copy(); pv.thumbnail((360, 360))
+        pv = composed.copy()
+        pv.thumbnail((360, 360))
         if out_format.lower() == "jpg":
             pv.convert("RGB").save(prev_io, format="JPEG", quality=85); mime = "image/jpeg"
         elif out_format.lower() == "png":
@@ -113,15 +126,18 @@ def render():
         return rel.as_posix(), prev_io.getvalue(), mime
 
     with ThreadPoolExecutor(max_workers=8) as ex:
-        fut=[ex.submit(worker,p) for p in paths]; tot=len(fut)
-        for i,f in enumerate(as_completed(fut),1):
+        fut = [ex.submit(worker, p) for p in paths]
+        tot = len(fut)
+        for i, f in enumerate(as_completed(fut), 1):
             try:
                 results.append(f.result())
             except Exception as e:
                 st.error(f"Erro ao processar: {e}")
-            prog.progress(i/tot); info.info(f"Processado {i}/{tot}")
+            prog.progress(i/tot)
+            info.info(f"Processado {i}/{tot}")
 
-    st.write("---"); st.subheader("Pré-visualizações")
+    st.write("---")
+    st.subheader("Pré-visualizações")
     cols = st.columns(3)
     for idx, (name, data, mime) in enumerate(results[:6]):
         with cols[idx % 3]:
@@ -129,9 +145,17 @@ def render():
 
     zbytes = io.BytesIO()
     with zipfile.ZipFile(zbytes, "w", zipfile.ZIP_DEFLATED) as z:
-        for root,_,files in os.walk(OUT):
+        for root, _, files in os.walk(OUT):
             for fn in files:
-                fp=os.path.join(root,fn); arc=os.path.relpath(fp,OUT); z.write(fp,arc)
+                fp = os.path.join(root, fn)
+                arc = os.path.relpath(fp, OUT)
+                z.write(fp, arc)
     zbytes.seek(0)
-    st.success("✅ Conversão concluída!")
-    st.download_button("⬇️ Baixar imagens convertidas", data=zbytes, file_name=f"convertidas_{target_label}.zip", mime="application/zip")
+
+    st.success("Conversão concluída!")
+    st.download_button(
+        "Baixar imagens convertidas",
+        data=zbytes,
+        file_name=f"convertidas_{target_label}.zip",
+        mime="application/zip"
+    )
