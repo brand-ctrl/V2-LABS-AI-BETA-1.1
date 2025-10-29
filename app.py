@@ -37,7 +37,7 @@ c1, c2, _ = st.columns([1,1,6])
 with c1:
     if st.button(" Home"): go("home")
 with c2:
-    if st.button("ℹ️ Sobre"): go("about")
+    if st.button(" Sobre"): go("about")
 
 route = st.session_state.route
 
@@ -69,7 +69,7 @@ if route == "home":
             </div>''', unsafe_allow_html=True
     )
     st.markdown('<div class="btn-row"></div>', unsafe_allow_html=True)
-    if st.button("📑 Abrir Extrator CSV", key="open_ext"):
+    if st.button(" Abrir Extrator CSV", key="open_ext"):
         go("extrator")
 
 elif route == "conversor":
@@ -78,5 +78,5 @@ elif route == "extrator":
     render_extrator()
 else:
     st.markdown('<h3 class="section-title">SOBRE</h3>', unsafe_allow_html=True)
-    st.write("🧠 **V2 LABS AI BETA 0.5** — Suíte de ferramentas para processamento de imagens.")
+    st.write(" **V2 LABS AI BETA 0.5** — Suíte de ferramentas para processamento de imagens.")
     st.write("Ferramentas: **Conversor de Imagens** (remoção de fundo via API, cor sólida, 1080×1080 / 1080×1920) e **Extrator CSV**.")
