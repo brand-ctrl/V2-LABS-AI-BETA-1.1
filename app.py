@@ -1,4 +1,3 @@
-
 import streamlit as st
 from modules.conversor import render as render_conversor
 from modules.extrator_csv import render as render_extrator
@@ -26,20 +25,28 @@ html, body, [class^="css"] { background: linear-gradient(135deg, rgba(21,170,255
 with st.container():
     cols = st.columns([1,6,1])
     with cols[1]:
-        st.markdown('<div class="v2-header">'
-                    '<img src="app/assets/logo_v2labs.png" height="50"/>'
-                    '<div class="v2-brand">V2 LABS AI BETA</div>'
-                    '</div>', unsafe_allow_html=True)
+        st.markdown(
+            '<div class="v2-header">'
+            '<img src="assets/logo_v2labs.png" height="50"/>'
+            '<div class="v2-brand">V2 LABS AI BETA</div>'
+            '</div>',
+            unsafe_allow_html=True
+        )
 
-if "route" not in st.session_state: st.session_state.route = "home"
-def go(r): st.session_state.route = r
+if "route" not in st.session_state:
+    st.session_state.route = "home"
+
+def go(r):
+    st.session_state.route = r
 
 # Top nav
 col1, col2, _ = st.columns([1,1,6])
 with col1:
-    if st.button("🏠 Home", type="secondary"): go("home")
+    if st.button("🏠 Home", type="secondary"):
+        go("home")
 with col2:
-    if st.button("ℹ️ Sobre", type="secondary"): go("about")
+    if st.button("ℹ️ Sobre", type="secondary"):
+        go("about")
 
 route = st.session_state.route
 
@@ -47,19 +54,28 @@ if route == "home":
     st.subheader("Ferramentas")
     c1, c2 = st.columns(2)
     with c1:
-        st.markdown('<div class="v2-card">'
-                    '<img class="icon" src="app/assets/icon_conversor.png">'
-                    '<h4>Conversor de Imagens</h4>'
-                    '<p>Redimensione para 1080×1080 ou 1080×1920, com cor de fundo ou remoção de fundo.</p>'
-                    '</div>', unsafe_allow_html=True)
-        if st.button("Abrir Conversor", key="btn_conv"): go("conversor")
+        st.markdown(
+            '<div class="v2-card">'
+            '<img class="icon" src="assets/icon_conversor.png">'
+            '<h4>Conversor de Imagens</h4>'
+            '<p>Redimensione para 1080×1080 ou 1080×1920, com cor de fundo ou remoção de fundo.</p>'
+            '</div>',
+            unsafe_allow_html=True
+        )
+        if st.button("Abrir Conversor", key="btn_conv"):
+            go("conversor")
+
     with c2:
-        st.markdown('<div class="v2-card">'
-                    '<img class="icon" src="app/assets/icon_extrator.png">'
-                    '<h4>Extrair Imagens via CSV</h4>'
-                    '<p>Baixe imagens diretamente de URLs em CSV.</p>'
-                    '</div>', unsafe_allow_html=True)
-        if st.button("Abrir Extrator CSV", key="btn_ext"): go("extrator")
+        st.markdown(
+            '<div class="v2-card">'
+            '<img class="icon" src="assets/icon_extrator.png">'
+            '<h4>Extrair Imagens via CSV</h4>'
+            '<p>Baixe imagens diretamente de URLs em CSV.</p>'
+            '</div>',
+            unsafe_allow_html=True
+        )
+        if st.button("Abrir Extrator CSV", key="btn_ext"):
+            go("extrator")
 
 elif route == "conversor":
     render_conversor()
