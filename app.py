@@ -15,7 +15,7 @@ st.markdown('''
 :root { --grad-start:#e9f5ff; --grad-end:#ffffff; }
 html, body, [class^="css"] { background: linear-gradient(180deg, var(--grad-start), var(--grad-end)); }
 .header { display:flex; align-items:center; justify-content:center; margin: 18px 0 10px; }
-.logo img { height: 84px; }
+.logo img { height: 280px; }
 .section-title { font-weight:800; color:#1e2a3a; margin: 12px 0 16px; }
 .card { display:flex; gap:16px; align-items:center; background:#fff; border:1px solid rgba(0,0,0,.06);
          border-radius:16px; padding:16px; box-shadow:0 8px 22px rgba(0,0,0,.06); }
