@@ -41,11 +41,12 @@ def _api_remove_bg(image_bytes: bytes, out_format: str, width=None, height=None)
 def render():
     # ---------- CABEÇALHO COM ÍCONE ----------
     st.markdown("""
-    <div style='display: flex; align-items: center; gap: 14px; margin-bottom: 10px;'>
-        <img src='app/assets/icon_conversor.svg' width='42'>
-        <h1 style='margin: 0; font-size: 28px;'>CONVERSOR DE IMAGENS</h1>
-    </div>
-    """, unsafe_allow_html=True)
+<div style='display: flex; align-items: center; gap: 14px; margin-bottom: 10px;'>
+    <img src='app/assets/icon_conversor.svg' width='46'>
+    <span style='font-size: 28px; font-weight: 700;'>CONVERSOR DE IMAGENS</span>
+</div>
+""", unsafe_allow_html=True)
+
 
     # ---------- OPÇÕES PRINCIPAIS ----------
     col1, col2 = st.columns(2)
